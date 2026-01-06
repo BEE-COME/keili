@@ -1,45 +1,86 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh-CN">
 <head>
-    <title>财富博弈模拟器 - 自动版</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>财富博弈模拟器 - 移动优化版</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; background: #f0f2f5; }
-        .container { max-width: 1000px; margin: auto; background: white; padding: 25px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
-        .controls { display: flex; gap: 15px; margin-bottom: 25px; align-items: center; flex-wrap: wrap; }
-        button { padding: 12px 24px; cursor: pointer; border: none; border-radius: 8px; color: white; font-weight: bold; transition: all 0.3s; }
-        .btn-manual { background: #2563eb; }
+        :root {
+            --primary: #2563eb;
+            --success: #52c41a;
+            --danger: #ff4d4f;
+            --warning: #faad14;
+        }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
+            margin: 0; padding: 10px; background: #f0f2f5; color: #333;
+        }
+        .container { 
+            max-width: 100%; margin: auto; background: white; 
+            padding: 15px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); 
+        }
+        h2 { font-size: 1.25rem; margin-top: 0; text-align: center; }
+        .rule-desc { font-size: 0.85rem; color: #666; text-align: center; margin-bottom: 15px; }
+        
+        /* 统计卡片适配手机 */
+        .stats { 
+            display: grid; grid-template-columns: 1fr; gap: 8px; margin-bottom: 15px; 
+        }
+        @media (min-width: 480px) { .stats { grid-template-columns: repeat(3, 1fr); } }
+        
+        .stat-card { 
+            padding: 12px; border-radius: 8px; text-align: center; color: white; 
+            font-size: 0.9rem; position: relative; overflow: hidden;
+        }
+        .card-a { background: var(--danger); }
+        .card-b { background: var(--success); }
+        .card-c { background: var(--primary); }
+        .val { font-size: 1.1rem; display: block; margin-top: 4px; font-weight: bold; overflow-x: auto; }
+
+        /* 按钮区域 */
+        .controls { 
+            display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 15px; 
+        }
+        button { 
+            padding: 14px 10px; cursor: pointer; border: none; border-radius: 8px; 
+            color: white; font-weight: bold; font-size: 0.95rem; active { opacity: 0.7; }
+        }
+        .btn-manual { background: var(--primary); grid-column: span 2; }
         .btn-auto { background: #722ed1; }
-        .btn-stop { background: #faad14; }
-        .btn-reset { background: #ff4d4f; }
-        button:hover { opacity: 0.8; transform: translateY(-1px); }
-        .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 20px; }
-        .stat-card { padding: 15px; border-radius: 10px; text-align: center; color: white; }
-        .card-a { background: #ff4d4f; } /* 红色 */
-        .card-b { background: #52c41a; } /* 绿色 */
-        .card-c { background: #1890ff; } /* 蓝色 */
-        .val { font-size: 1.2em; display: block; margin-top: 5px; font-weight: bold; }
+        .btn-stop { background: var(--warning); }
+        .btn-reset { background: #666; }
+        
+        .round-info { 
+            text-align: center; font-size: 0.9rem; font-weight: bold; grid-column: span 2;
+            padding: 5px; color: #444;
+        }
+
+        /* 图表容器 */
+        .chart-container { position: relative; height: 300px; width: 100%; }
     </style>
 </head>
 <body>
 <div class="container">
-    <h2>无限按钮模拟器 (自动版)</h2>
-    <p>规则：50% 概率本金*9，50% 概率本金*0.1 | 起始资金：10,000</p>
+    <h2>无限按钮模拟器</h2>
+    <p class="rule-desc">50% 概率本金*9，50% 概率本介*0.1</p>
     
     <div class="stats">
-        <div class="stat-card card-a">方案 A (100%梭哈)<span class="val" id="valA">10,000</span></div>
-        <div class="stat-card card-b">方案 B (44%凯利)<span class="val" id="valB">10,000</span></div>
-        <div class="stat-card card-c">方案 C (20%稳健)<span class="val" id="valC">10,000</span></div>
+        <div class="stat-card card-a">100% 投入<span class="val" id="valA">10,000</span></div>
+        <div class="stat-card card-b">44% 凯利<span class="val" id="valB">10,000</span></div>
+        <div class="stat-card card-c">20% 稳健<span class="val" id="valC">10,000</span></div>
     </div>
 
     <div class="controls">
-        <button class="btn-manual" onclick="pressButton()">手动按一下</button>
-        <button id="autoBtn" class="btn-auto" onclick="toggleAuto()">开始自动运行</button>
+        <button class="btn-manual" onclick="pressButton()">按一下按钮</button>
+        <button id="autoBtn" class="btn-auto" onclick="toggleAuto()">开始自动</button>
         <button class="btn-reset" onclick="reset()">重置</button>
-        <span id="roundText" style="font-weight: bold;">点击次数：0</span>
+        <div id="roundText" class="round-info">点击次数：0</div>
     </div>
 
-    <canvas id="wealthChart" height="120"></canvas>
+    <div class="chart-container">
+        <canvas id="wealthChart"></canvas>
+    </div>
 </div>
 
 <script>
@@ -52,26 +93,19 @@ function pressButton() {
     const win = Math.random() < 0.5;
     const factor = win ? 9 : 0.1;
     
-    // 方案 A: 100% 投入
     let lastA = dataA[dataA.length - 1];
-    dataA.push(lastA > 0.01 ? lastA * factor : 0);
+    dataA.push(lastA > 0.1 ? lastA * factor : 0);
 
-    // 方案 B: 44% 投入
     let lastB = dataB[dataB.length - 1];
     let investB = lastB * 0.44;
     dataB.push((lastB - investB) + (investB * factor));
 
-    // 方案 C: 20% 投入
     let lastC = dataC[dataC.length - 1];
     let investC = lastC * 0.20;
     dataC.push((lastC - investC) + (investC * factor));
 
     labels.push(round);
-    
-    // 每 10 次更新一次图表，防止自动模式下渲染卡顿
-    if (round % 1 === 0 || round < 10) {
-        updateUI();
-    }
+    updateUI();
 }
 
 function updateUI() {
@@ -80,14 +114,13 @@ function updateUI() {
     document.getElementById('valC').innerText = Math.floor(dataC[dataC.length-1]).toLocaleString();
     document.getElementById('roundText').innerText = `点击次数：${round}`;
     
-    // 只保留最近 50 个点以防性能问题
-    if (labels.length > 50) {
-        chart.data.labels = labels.slice(-50);
-        chart.data.datasets[0].data = dataA.slice(-50);
-        chart.data.datasets[1].data = dataB.slice(-50);
-        chart.data.datasets[2].data = dataC.slice(-50);
-    }
-    chart.update('none'); // 使用 'none' 模式禁用动画，提高自动运行性能
+    const maxPoints = 30; // 手机端显示更少的点，保证清晰
+    chart.data.labels = labels.slice(-maxPoints);
+    chart.data.datasets[0].data = dataA.slice(-maxPoints);
+    chart.data.datasets[1].data = dataB.slice(-maxPoints);
+    chart.data.datasets[2].data = dataC.slice(-maxPoints);
+    
+    chart.update('none');
 }
 
 function toggleAuto() {
@@ -95,11 +128,11 @@ function toggleAuto() {
     if (autoInterval) {
         clearInterval(autoInterval);
         autoInterval = null;
-        btn.innerText = "开始自动运行";
+        btn.innerText = "开始自动";
         btn.className = "btn-auto";
     } else {
-        autoInterval = setInterval(pressButton, 200); // 每200毫秒点击一次 (每秒5次)
-        btn.innerText = "停止自动运行";
+        autoInterval = setInterval(pressButton, 300); // 稍微调慢一点点，手机渲染更稳
+        btn.innerText = "停止自动";
         btn.className = "btn-stop";
     }
 }
@@ -108,10 +141,6 @@ function reset() {
     if (autoInterval) toggleAuto();
     round = 0;
     dataA = [10000]; dataB = [10000]; dataC = [10000]; labels = [0];
-    chart.data.labels = labels;
-    chart.data.datasets[0].data = dataA;
-    chart.data.datasets[1].data = dataB;
-    chart.data.datasets[2].data = dataC;
     updateUI();
 }
 
@@ -121,23 +150,29 @@ const chart = new Chart(ctx, {
     data: {
         labels: labels,
         datasets: [
-            { label: '方案 A (100%)', data: dataA, borderColor: '#ff4d4f', tension: 0.1, pointRadius: 0 },
-            { label: '方案 B (44%)', data: dataB, borderColor: '#52c41a', tension: 0.1, pointRadius: 0 },
-            { label: '方案 C (20%)', data: dataC, borderColor: '#1890ff', tension: 0.1, pointRadius: 0 }
+            { label: '100%', data: dataA, borderColor: '#ff4d4f', borderWidth: 2, pointRadius: 0 },
+            { label: '44%', data: dataB, borderColor: '#52c41a', borderWidth: 2, pointRadius: 0 },
+            { label: '20%', data: dataC, borderColor: '#1890ff', borderWidth: 2, pointRadius: 0 }
         ]
     },
     options: {
         responsive: true,
+        maintainAspectRatio: false,
         scales: { 
             y: { 
                 type: 'logarithmic', 
-                title: { display: true, text: '财富值 (对数坐标)' },
-                ticks: { callback: (value) => value.toLocaleString() }
+                ticks: { 
+                    maxRotation: 0,
+                    callback: function(value) {
+                        if (value >= 1e9) return (value/1e9).toFixed(1) + 'B';
+                        if (value >= 1e6) return (value/1e6).toFixed(1) + 'M';
+                        if (value >= 1e3) return (value/1e3).toFixed(1) + 'K';
+                        return value;
+                    }
+                }
             } 
         },
-        plugins: {
-            legend: { position: 'top' }
-        },
+        plugins: { legend: { display: true, position: 'bottom', labels: { boxWidth: 12 } } },
         animation: false
     }
 });
